@@ -1,1 +1,6 @@
-[]
+[
+  [ "selfprivacy", "domain" ],
+  [ "selfprivacy", "timezone" ],
+  [ "selfprivacy", "useBinds" ],
+  [ "selfprivacy", "modules", "omnitools" ]
+]
