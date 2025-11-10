@@ -1,21 +1,34 @@
 {
-  description = "SelfPrivacy Omni-Tools Module";
+  description = "Omni-Tools module";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+  outputs = { self }: {
+    nixosModules.default = import ./module.nix;
 
-  outputs = { self, nixpkgs, flake-utils }:
-    {
-      nixosModules.default = import ./module.nix;
+    configPathsNeeded =
+      builtins.fromJSON (builtins.readFile ./config-paths-needed.json);
 
-      configPathsNeeded = import ./config-paths-needed.json;
-
-      metadata = {
-        name = "Omni-Tools";
-        description = "All-in-one tool container";
-        version = "1.0.0";
-      };
+    meta = { lib, ... }: {
+      spModuleSchemaVersion = 1;
+      id = "omnitools";
+      name = "Omni-Tools";
+      description = "All-in-one tool container with utilities and converters.";
+      svgIcon = builtins.readFile ./icon.svg;
+      isMovable = true;
+      canBeBackedUp = true;
+      isRequired = false;
+      backupDescription = "Omni-Tools data and configurations.";
+      systemdServices = [
+        "omnitools.service"
+      ];
+      folders = [
+        "/var/lib/private/omnitools"
+      ];
+      license = [
+        lib.licenses.unfree
+      ];
+      homepage = "https://github.com/iib0011/omni-tools";
+      sourcePage = "https://github.com/iib0011/omni-tools";
+      supportLevel = "community";
     };
+  };
 }
