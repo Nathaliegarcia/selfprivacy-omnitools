@@ -27,8 +27,7 @@ in
     };
   };
 
-  config = mkMerge [
-    (mkIf cfg.enable {
+  config = cfg.enable {
       # Enable Docker
       virtualisation.docker.enable = true;
 
@@ -75,6 +74,5 @@ in
           '';
         };
       };
-    })
-  ];
+    }
 }
