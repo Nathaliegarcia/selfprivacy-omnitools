@@ -3,27 +3,27 @@
 with lib;
 
 let
-  cfg = config.services.omni-tools;
+  cfg = config.services.omnitools;
 in
 {
-  options.services.omni-tools = {
-    enable = mkEnableOption "Omni-Tools";
+  options.services.omnitools = {
+    enable = mkEnableOption "OmniTools";
 
     location = mkOption {
       type = types.str;
-      description = "Path where omni-tools data will be stored";
+      description = "Path where omnitools data will be stored";
     };
 
     subdomain = mkOption {
       type = types.str;
       default = "tools";
-      description = "Subdomain for accessing Omni-Tools";
+      description = "Subdomain for accessing OmniTools";
     };
 
     internalPort = mkOption {
       type = types.int;
       default = 8080;
-      description = "Internal port to bind Omni-Tools on localhost";
+      description = "Internal port to bind OmniTools on localhost";
     };
   };
 
@@ -33,20 +33,20 @@ in
       virtualisation.docker.enable = true;
 
       # Create systemd slice for the module
-      systemd.slices."omni_tools" = {
-        description = "Omni-Tools Slice";
+      systemd.slices."omnitools" = {
+        description = "OmniTools Slice";
       };
 
       # Create the systemd service to run the Docker container
-      systemd.services."omni-tools" = {
-        description = "Omni-Tools Container";
+      systemd.services.omnitools = {
+        description = "OmniTools Container";
         after = [ "docker.service" ];
         requires = [ "docker.service" ];
         wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
           Type = "simple";
-          Slice = "omni_tools";
+          Slice = "omnitools";
           Restart = "always";
           RestartSec = 5;
           User = "root";
