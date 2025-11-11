@@ -13,8 +13,8 @@
       name = "Omni-Tools";
       description = "All-in-one tool container with utilities and converters.";
       svgIcon = builtins.readFile ./icon.svg;
-      isMovable = true;
-      canBeBackedUp = true;
+      isMovable = false;
+      canBeBackedUp = false;
       isRequired = false;
       backupDescription = "Omni-Tools data and configurations.";
       systemdServices = [
@@ -22,9 +22,6 @@
       ];
       folders = [
         "/var/lib/private/omnitools"
-      ];
-      license = [
-        lib.licenses.unfree
       ];
       homepage = "https://github.com/iib0011/omni-tools";
       sourcePage = "https://github.com/iib0011/omni-tools";
