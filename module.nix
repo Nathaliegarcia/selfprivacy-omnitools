@@ -49,7 +49,7 @@ in
       containers.omnitools = {
         image = "iib0011/omni-tools:latest";
         # published ports
-        ports = [ "127.0.0.1:${toString cfg.internalPort}:80" ];
+        ports = [ "127.0.0.1:${cfg.internalPort}:80" ];
         # volumes
         volumes = [ "/var/lib/private/omnitools:/app/data" ];
         # ensure a stable name
@@ -77,7 +77,7 @@ in
         proxy_cookie_path / "/; secure; HttpOnly; SameSite=strict";
       '';
       locations."/" = {
-        proxyPass = "http://127.0.0.1:${toString cfg.internalPort}";
+        proxyPass = "http://127.0.0.1:${cfg.internalPort}";
         proxyWebsockets = true;
         extraConfig = ''
           proxy_read_timeout  60s;
