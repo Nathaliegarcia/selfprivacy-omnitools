@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   sp = config.selfprivacy;
@@ -41,43 +41,30 @@ in
     };
   };
 
+
   config = lib.mkIf cfg.enable {
-    # Enable Docker podman
-    virtualisation.podman = {
-      enable = true;
-      dockerCompat = true;  # provides `docker` CLI + /run/docker.sock compat via Podman
-      defaultNetwork.settings = { dns_enabled = true; }; # container DNS (recommended)
-    };
-
-    # Create systemd slice for the module
-    systemd.slices.omnitools = {
-      description = "Omni-Tools Slice";
-    };
-
-    # Create the systemd service to run the Docker container
-    systemd.services.omnitools = {
-      description = "Omni-Tools Container";
-      after = [ "podman.service" ];
-      requires = [ "podman.service" ];
-      wantedBy = [ "multi-user.target" ];
-
-      serviceConfig = {
-        Type = "simple";
-        Slice = "omnitools.slice";
-        Restart = "always";
-        RestartSec = 5;
-        User = "root";
-
-        # Pull and run the Docker image with volume mount for data persistence
-        ExecStartPre = "${lib.getExe' (lib.getBin config.boot.kernelPackages.podman) "podman"} pull iib0011/omni-tools:latest";
-        ExecStart = "${lib.getExe' (lib.getBin config.boot.kernelPackages.podman) "podman"} run --rm --name omnitools -v /var/lib/private/omnitools:/app/data -p 127.0.0.1:${toString cfg.internalPort}:80 iib0011/omni-tools:latest";
-        ExecStop = "${lib.getExe' (lib.getBin config.boot.kernelPackages.podman) "podman"} stop omnitools";
+    # Use Podman as backend for OCI containers
+    virtualisation.oci-containers = {
+      backend = "podman";
+      containers.omnitools = {
+        image = "iib0011/omni-tools:latest";
+        # published ports
+        ports = [ "127.0.0.1:${toString cfg.internalPort}:80" ];
+        # volumes
+        volumes = [ "/var/lib/private/omnitools:/app/data" ];
+        # ensure a stable name
+        extraOptions = [ "--name=omnitools" ];
+        # (optional) always pull latest on start
+        pullPolicy = "always";
       };
-
-      unitConfig.RequiresMountsFor = lib.mkIf sp.useBinds "/var/lib/private/omnitools";
     };
 
-    # Reverse proxy configuration for web browser access
+    # Data dir with proper ownership/permissions
+    systemd.services."podman-omnitools".serviceConfig = {
+      StateDirectory = "omnitools";
+      StateDirectoryMode = "0750";
+    };
+
     services.nginx.virtualHosts."${cfg.subdomain}.${sp.domain}" = {
       useACMEHost = sp.domain;
       forceSSL = true;
