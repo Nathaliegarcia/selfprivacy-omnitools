@@ -67,15 +67,38 @@ in
     };
     
     
-    # Bootstrap (active l’unité pour l’utilisateur au boot)
     systemd.services.omnitools-user-bootstrap = {
       description = "Enable & start omnitools user service for onmitools";
       wantedBy = [ "multi-user.target" ];
       after = [ "network-online.target" "systemd-user-sessions.service" ];
-      serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
       script = ''
-        ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user daemon-reload
-        ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user enable --now omnitools
+        set -euo pipefail
+        uid="$(id -u onmitools)"
+        export XDG_RUNTIME_DIR="/run/user/$uid"
+    
+        # Assure le runtime dir (si le user manager n’a pas encore démarré)
+        if [ ! -d "$XDG_RUNTIME_DIR" ]; then
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chown onmitools:onmitools "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+        fi
+    
+        # Recharge les unités user
+        ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user daemon-reload || true
+    
+        # Active l'unité si pas déjà fait
+        if ! ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user is-enabled omnitools >/dev/null 2>&1; then
+          ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user enable omnitools || true
+        fi
+    
+        # Démarre l'unité si pas active
+        if ! ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user is-active omnitools >/dev/null 2>&1; then
+          ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user start omnitools || true
+        fi
       '';
     };
 
