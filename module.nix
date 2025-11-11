@@ -43,7 +43,7 @@ in
         # ensure a stable name
         extraOptions = [ "--name=omnitools" ];
         # (optional) always pull latest on start
-        pullPolicy = "always";
+        pull = "newer";
       };
     };
 
