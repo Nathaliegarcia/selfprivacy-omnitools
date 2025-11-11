@@ -42,8 +42,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Enable Docker
-    virtualisation.docker.enable = true;
+    # Enable Docker podman
+    virtualisation.podman = {
+      enable = true;
+      dockerCompat = true;  # provides `docker` CLI + /run/docker.sock compat via Podman
+      defaultNetwork.settings = { dns_enabled = true; }; # container DNS (recommended)
+    };
 
     # Create systemd slice for the module
     systemd.slices.omnitools = {
@@ -53,8 +57,8 @@ in
     # Create the systemd service to run the Docker container
     systemd.services.omnitools = {
       description = "Omni-Tools Container";
-      after = [ "docker.service" ];
-      requires = [ "docker.service" ];
+      after = [ "podman.service" ];
+      requires = [ "podman.service" ];
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
@@ -65,9 +69,9 @@ in
         User = "root";
 
         # Pull and run the Docker image with volume mount for data persistence
-        ExecStartPre = "${lib.getExe' (lib.getBin config.boot.kernelPackages.docker) "docker"} pull iib0011/omni-tools:latest";
-        ExecStart = "${lib.getExe' (lib.getBin config.boot.kernelPackages.docker) "docker"} run --rm --name omnitools -v /var/lib/private/omnitools:/app/data -p 127.0.0.1:${toString cfg.internalPort}:80 iib0011/omni-tools:latest";
-        ExecStop = "${lib.getExe' (lib.getBin config.boot.kernelPackages.docker) "docker"} stop omnitools";
+        ExecStartPre = "${lib.getExe' (lib.getBin config.boot.kernelPackages.podman) "podman"} pull iib0011/omni-tools:latest";
+        ExecStart = "${lib.getExe' (lib.getBin config.boot.kernelPackages.podman) "podman"} run --rm --name omnitools -v /var/lib/private/omnitools:/app/data -p 127.0.0.1:${toString cfg.internalPort}:80 iib0011/omni-tools:latest";
+        ExecStop = "${lib.getExe' (lib.getBin config.boot.kernelPackages.podman) "podman"} stop omnitools";
       };
 
       unitConfig.RequiresMountsFor = lib.mkIf sp.useBinds "/var/lib/private/omnitools";
