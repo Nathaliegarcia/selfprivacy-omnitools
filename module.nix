@@ -29,18 +29,6 @@ in
       };
     };
 
-    internalPort = (lib.mkOption {
-      default = "8080";
-      type = lib.types.strMatching "[0-9]{1,5}";
-      description = "Internal port for Omni-Tools";
-    }) // {
-      meta = {
-        type = "string";
-        regex = "[0-9]{1,5}";
-      };
-    };
-  };
-
 
   config = lib.mkIf cfg.enable {
     # Use Podman as backend for OCI containers
@@ -49,7 +37,7 @@ in
       containers.omnitools = {
         image = "iib0011/omni-tools:latest";
         # published ports
-        ports = [ "127.0.0.1:${cfg.internalPort}:80" ];
+        ports = [ "127.0.0.1:8989:80" ];
         # volumes
         volumes = [ "/var/lib/private/omnitools:/app/data" ];
         # ensure a stable name
@@ -77,7 +65,7 @@ in
         proxy_cookie_path / "/; secure; HttpOnly; SameSite=strict";
       '';
       locations."/" = {
-        proxyPass = "http://127.0.0.1:${cfg.internalPort}";
+        proxyPass = "http://127.0.0.1:8989";
         proxyWebsockets = true;
         extraConfig = ''
           proxy_read_timeout  60s;
