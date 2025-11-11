@@ -30,13 +30,13 @@ in
     };
 
     internalPort = (lib.mkOption {
-      default = 8080;
-      type = lib.types.int;
+      default = "8080";
+      type = lib.types.strMatching "[0-9]{1,5}";
       description = "Internal port for Omni-Tools";
     }) // {
       meta = {
-        type = "int";
-        weight = 1;
+        type = "string";
+        regex = "[0-9]{1,5}";
       };
     };
   };
