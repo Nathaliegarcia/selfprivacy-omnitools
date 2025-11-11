@@ -28,7 +28,7 @@ in
         weight = 0;
       };
     };
-
+  };
 
   config = lib.mkIf cfg.enable {
     # Use Podman as backend for OCI containers
