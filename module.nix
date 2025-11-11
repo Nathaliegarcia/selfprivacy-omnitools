@@ -49,7 +49,7 @@ in
       subGidRanges = [{ start = 100000; count = 65536; }];
     };
 
-    services.logind.lingerUsers = [ cfg.user ];
+    services.logind.lingerUsers = [ "onmitools" ];
     systemd.user.services.omnitools = {
       description = "Omni-Tools (rootless via Podman)";
       after = [ "network-online.target" ];
