@@ -45,8 +45,6 @@ in
       group = "onmitools";
       linger = true;
       extraGroups = [ "podman" ];
-      subUidRanges = [{ start = 100000; count = 65536; }];
-      subGidRanges = [{ start = 100000; count = 65536; }];
     };
 
     #services.logind.lingerUsers = [ "onmitools" ];
