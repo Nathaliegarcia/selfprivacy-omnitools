@@ -16,15 +16,6 @@ in
       };
     };
 
-    location = (lib.mkOption {
-      type = lib.types.str;
-      description = "Omni-Tools data location";
-    }) // {
-      meta = {
-        type = "location";
-      };
-    };
-
     subdomain = (lib.mkOption {
       default = "tools";
       type = lib.types.strMatching "[A-Za-z0-9][A-Za-z0-9\-]{0,61}[A-Za-z0-9]";
@@ -53,14 +44,6 @@ in
   config = lib.mkIf cfg.enable {
     # Enable Docker
     virtualisation.docker.enable = true;
-
-    # Bind mount for data persistence
-    fileSystems = lib.mkIf sp.useBinds {
-      "/var/lib/private/omnitools" = {
-        device = "/volumes/${cfg.location}/omnitools";
-        options = [ "bind" ];
-      };
-    };
 
     # Create systemd slice for the module
     systemd.slices.omnitools = {
