@@ -44,12 +44,12 @@ in
       createHome = true;
       shell = pkgs.nologin;
       group = "onmitools";
-      extraGroups = [ "podman" ];   # <-- AJOUT
+      linger = true;
+      extraGroups = [ "podman" ];
       subUidRanges = [{ start = 100000; count = 65536; }];
       subGidRanges = [{ start = 100000; count = 65536; }];
     };
 
-    users.users.onmitools.linger = true;
     #services.logind.lingerUsers = [ "onmitools" ];
     systemd.user.services.omnitools = {
       description = "Omni-Tools (rootless via Podman)";
@@ -67,6 +67,19 @@ in
         Restart = "always";
         RestartSec = 5;
       };
+    };
+    
+    
+    # Bootstrap (active l’unité pour l’utilisateur au boot)
+    systemd.services.omnitools-user-bootstrap = {
+      description = "Enable & start omnitools user service for onmitools";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" "systemd-user-sessions.service" ];
+      serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+      script = ''
+        ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user daemon-reload
+        ${pkgs.util-linux}/bin/runuser -u onmitools -- systemctl --user enable --now omnitools
+      '';
     };
 
     services.nginx.virtualHosts."${cfg.subdomain}.${sp.domain}" = {
