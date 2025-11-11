@@ -39,7 +39,7 @@ in
         # published ports
         ports = [ "127.0.0.1:8989:80" ];
         # volumes
-        volumes = [ "/var/lib/private/omnitools:/app/data" ];
+        #volumes = [ "/var/lib/private/omnitools:/app/data" ];
         # ensure a stable name
         extraOptions = [ "--name=omnitools" ];
         # (optional) always pull latest on start
