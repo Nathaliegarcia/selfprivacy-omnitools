@@ -32,7 +32,6 @@ in
 
   config = lib.mkIf cfg.enable {
     virtualisation.podman.enable = true;
-    virtualisation.podman.rootless.enable = true;
     environment.systemPackages = [ pkgs.slirp4netns pkgs.fuse-overlayfs ];
 
     users.groups.podman = {};
