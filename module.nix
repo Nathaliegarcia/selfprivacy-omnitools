@@ -31,26 +31,41 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Use Podman as backend for OCI containers
-    virtualisation.oci-containers = {
-      backend = "podman";
-      containers.omnitools = {
-        image = "iib0011/omni-tools:latest";
-        # published ports
-        ports = [ "127.0.0.1:8989:80" ];
-        # volumes
-        #volumes = [ "/var/lib/private/omnitools:/app/data" ];
-        # ensure a stable name
-        extraOptions = [ "--name=omnitools" ];
-        # (optional) always pull latest on start
-        pull = "newer";
-      };
+    virtualisation.podman.enable = true;
+    virtualisation.podman.rootless.enable = true;
+    environment.systemPackages = [ pkgs.slirp4netns pkgs.fuse-overlayfs ];
+
+    users.groups.podman = {};
+    users.groups.onmitools = {};
+    users.users.onmitools = {
+      isSystemUser = true;
+      description = "Omni-Tools rootless runner";
+      home = "/var/lib/onmitools";
+      createHome = true;
+      shell = pkgs.nologin;
+      group = "onmitools";
+      extraGroups = [ "podman" ];   # <-- AJOUT
+      subUidRanges = [{ start = 100000; count = 65536; }];
+      subGidRanges = [{ start = 100000; count = 65536; }];
     };
 
-    # Data dir with proper ownership/permissions
-    systemd.services."podman-omnitools".serviceConfig = {
-      StateDirectory = "omnitools";
-      StateDirectoryMode = "0750";
+    services.logind.lingerUsers = [ cfg.user ];
+    systemd.user.services.omnitools = {
+      description = "Omni-Tools (rootless via Podman)";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        ExecStart = ''
+          ${pkgs.podman}/bin/podman run --name omnitools \
+            --pull=newer --rm \
+            -p 127.0.0.1:8989:80 \
+            docker.io/iib0011/omni-tools:latest
+        '';
+        ExecStop = "${pkgs.podman}/bin/podman stop -t 10 omnitools";
+        Restart = "always";
+        RestartSec = 5;
+      };
     };
 
     services.nginx.virtualHosts."${cfg.subdomain}.${sp.domain}" = {
