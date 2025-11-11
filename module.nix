@@ -41,7 +41,7 @@ in
       description = "Omni-Tools rootless runner";
       home = "/var/lib/onmitools";
       createHome = true;
-      shell = pkgs.nologin;
+      #shell = pkgs.nologin;
       group = "onmitools";
       linger = true;
       extraGroups = [ "podman" ];
